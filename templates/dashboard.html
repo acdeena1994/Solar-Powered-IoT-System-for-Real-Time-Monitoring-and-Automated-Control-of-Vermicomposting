@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Menu Bar */
+        .menu-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #046136;
+            padding: 10px 20px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-bar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .menu-bar a:hover {
+            color: #ffdd57;
+        }
+
+        /* Main Content */
+        .content {
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 20px 0;
+            color: #046136;
+            text-align: center;
+            font-size: 2.5em;
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Cards */
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.5em;
+            color: #555;
+        }
+
+        .card p {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Graph Containers */
+        .graph-container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .graph-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .graph-container h3 {
+            margin-top: 0;
+            font-size: 1.5em;
+            color: #555;
+        }
+
+        /* Buttons */
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .button-container button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #046136;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-container button:hover {
+            background-color: #034627;
+        }
+
+        /* Real-Time Data */
+        .real-time {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 10px 0;
+            color: #046136;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Bar -->
+    <div class="menu-bar">
+        <div>
+            <a href="#" onclick="showContent('dashboard')">Dashboard</a>
+            <a href="#" onclick="showContent('home')">Home</a>
+            <a href="#" onclick="showContent('download')">Download</a>
+        </div>
+        <div>
+            <span id="date"></span> | <span id="day"></span> | <span id="time"></span>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashboard" class="content active fade-in">
+        <h1>IoT-Enabled Vermicompost Monitoring</h1>
+        <div class="real-time">
+            <span id="date"></span> | <span id="day"></span> | <span id="time"></span>
+        </div>
+        <div class="button-container">
+            <button onclick="downloadData()">Download Data</button>
+            <button onclick="resetData()">Reset Data</button>
+        </div>
+
+        <!-- Real-Time Sensor Data -->
+        <div class="dashboard">
+            <div class="card">
+                <h2>🌡 Temperature (°C)</h2>
+                <p id="temperature">Loading...</p>
+            </div>
+            <div class="card">
+                <h2>💧 Humidity (%)</h2>
+                <p id="humidity">Loading...</p>
+            </div>
+            <div class="card">
+                <h2>🛢 Soil Moisture 1 (%)</h2>
+                <p id="moisture1">Loading...</p>
+            </div>
+            <div class="card">
+                <h2>🛢 Soil Moisture 2 (%)</h2>
+                <p id="moisture2">Loading...</p>
+            </div>
+            <div class="card">
+                <h2>🌫 Gas Level</h2>
+                <p id="gasValue">Loading...</p>
+            </div>
+            <div class="card">
+                <h2>🔋 Battery Voltage</h2>
+                <p id="voltage">Loading...</p>
+            </div>
+            <div class="card">
+                <h2>🔋 Battery Level (%)</h2>
+                <p id="batteryLevel">Loading...</p>
+            </div>
+            <div class="card">
+                <h2>☀ Solar Voltage</h2>
+                <p id="solarVoltage">Loading...</p>
+            </div>
+            <div class="card">
+                <h2>🚰 Water Pump</h2>
+                <p id="relayWaterPump">Loading...</p>
+            </div>
+            <div class="card">
+                <h2>⚙ Motor</h2>
+                <p id="relayMotor">Loading...</p>
+            </div>
+        </div>
+
+        <!-- Graphical Data Representation -->
+        <div class="graph-container">
+            <h3>📊 Temperature Over Time</h3>
+            <div id="graph-temperature"></div>
+        </div>
+        <div class="graph-container">
+            <h3>📊 Humidity Over Time</h3>
+            <div id="graph-humidity"></div>
+        </div>
+        <div class="graph-container">
+            <h3>📊 Soil Moisture 1 Over Time</h3>
+            <div id="graph-moisture1"></div>
+        </div>
+        <div class="graph-container">
+            <h3>📊 Soil Moisture 2 Over Time</h3>
+            <div id="graph-moisture2"></div>
+        </div>
+        <div class="graph-container">
+            <h3>📊 Gas Level Over Time</h3>
+            <div id="graph-gasValue"></div>
+        </div>
+        <div class="graph-container">
+            <h3>📊 Battery Voltage Over Time</h3>
+            <div id="graph-voltage"></div>
+        </div>
+        <div class="graph-container">
+            <h3>📊 Battery Level Over Time</h3>
+            <div id="graph-batteryLevel"></div>
+        </div>
+        <div class="graph-container">
+            <h3>📊 Solar Voltage Over Time</h3>
+            <div id="graph-solarVoltage"></div>
+        </div>
+    </div>
+
+    <!-- Home and Download Content (Same as before) -->
+    <!-- ... -->
+
+    <script>
+        // Function to update real-time date, day, and time
+        function updateRealTime() {
+            const now = new Date();
+            const date = now.toLocaleDateString();
+            const day = now.toLocaleString('default', { weekday: 'long' });
+            const time = now.toLocaleTimeString();
+            document.getElementById('date').innerText = date;
+            document.getElementById('day').innerText = day;
+            document.getElementById('time').innerText = time;
+        }
+        setInterval(updateRealTime, 1000);
+        updateRealTime();
+
+        // Function to download data as Excel
+        function downloadData() {
+            fetch('/download_data')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'sensor_data.xlsx';
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                });
+        }
+
+        // Function to reset data
+        function resetData() {
+            fetch('/reset_data', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Data reset successfully!');
+                        location.reload(); // Refresh the page to reflect changes
+                    }
+                });
+        }
+
+        // Function to update sensor data and graphs
+        function updateData() {
+            fetch('/get_data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update card values
+                    document.getElementById('temperature').innerText = data[0].temperature + ' °C';
+                    document.getElementById('humidity').innerText = data[0].humidity + ' %';
+                    document.getElementById('moisture1').innerText = data[0].moisture1 + ' %';
+                    document.getElementById('moisture2').innerText = data[0].moisture2 + ' %';
+                    document.getElementById('gasValue').innerText = data[0].gasValue;
+                    document.getElementById('voltage').innerText = data[0].voltage + ' V';
+                    document.getElementById('batteryLevel').innerText = data[0].batteryLevel + ' %';
+                    document.getElementById('solarVoltage').innerText = data[0].solarVoltage + ' V';
+                    document.getElementById('relayWaterPump').innerText = data[0].relayWaterPump ? 'ON' : 'OFF';
+                    document.getElementById('relayMotor').innerText = data[0].relayMotor ? 'ON' : 'OFF';
+
+                    // Extract data for graphs
+                    const timestamps = data.map(d => d.timestamp);
+                    const temperatures = data.map(d => d.temperature);
+                    const humidities = data.map(d => d.humidity);
+                    const moisture1s = data.map(d => d.moisture1);
+                    const moisture2s = data.map(d => d.moisture2);
+                    const gasValues = data.map(d => d.gasValue);
+                    const voltages = data.map(d => d.voltage);
+                    const batteryLevels = data.map(d => d.batteryLevel);
+                    const solarVoltages = data.map(d => d.solarVoltage);
+
+                    // Plot separate graphs
+                    Plotly.newPlot('graph-temperature', [{ x: timestamps, y: temperatures, mode: 'lines', name: 'Temperature', line: { color: '#FF0000' } }], { title: 'Temperature Over Time', xaxis: { title: 'Time' }, yaxis: { title: 'Temperature (°C)' } });
+                    Plotly.newPlot('graph-humidity', [{ x: timestamps, y: humidities, mode: 'lines', name: 'Humidity', line: { color: '#00FF00' } }], { title: 'Humidity Over Time', xaxis: { title: 'Time' }, yaxis: { title: 'Humidity (%)' } });
+                    Plotly.newPlot('graph-moisture1', [{ x: timestamps, y: moisture1s, mode: 'lines', name: 'Soil Moisture 1', line: { color: '#FFA500' } }], { title: 'Soil Moisture 1 Over Time', xaxis: { title: 'Time' }, yaxis: { title: 'Moisture (%)' } });
+                    Plotly.newPlot('graph-moisture2', [{ x: timestamps, y: moisture2s, mode: 'lines', name: 'Soil Moisture 2', line: { color: '#800080' } }], { title: 'Soil Moisture 2 Over Time', xaxis: { title: 'Time' }, yaxis: { title: 'Moisture (%)' } });
+                    Plotly.newPlot('graph-gasValue', [{ x: timestamps, y: gasValues, mode: 'lines', name: 'Gas Level', line: { color: '#0000FF' } }], { title: 'Gas Level Over Time', xaxis: { title: 'Time' }, yaxis: { title: 'Gas Level' } });
+                    Plotly.newPlot('graph-voltage', [{ x: timestamps, y: voltages, mode: 'lines', name: 'Battery Voltage', line: { color: '#FF00FF' } }], { title: 'Battery Voltage Over Time', xaxis: { title: 'Time' }, yaxis: { title: 'Voltage (V)' } });
+                    Plotly.newPlot('graph-batteryLevel', [{ x: timestamps, y: batteryLevels, mode: 'lines', name: 'Battery Level', line: { color: '#00FFFF' } }], { title: 'Battery Level Over Time', xaxis: { title: 'Time' }, yaxis: { title: 'Battery Level (%)' } });
+                    Plotly.newPlot('graph-solarVoltage', [{ x: timestamps, y: solarVoltages, mode: 'lines', name: 'Solar Voltage', line: { color: '#FFFF00' } }], { title: 'Solar Voltage Over Time', xaxis: { title: 'Time' }, yaxis: { title: 'Voltage (V)' } });
+                });
+        }
+
+        setInterval(updateData, 2000);
+        updateData();
+
+        // Function to show content based on menu selection
+        function showContent(contentId) {
+            const contents = document.querySelectorAll('.content');
+            contents.forEach(content => content.classList.remove('active'));
+            document.getElementById(contentId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
